@@ -69,67 +69,26 @@
 - 会后主动跟进
 -->
 
-# Causal AI: A New Paradigm for Machine Intelligence
+# Causal AI Pitch Deck
 
-## The Technical Whitepaper for the Crypto Community
+## 10-Page Story That Changes Everything
 
-**Slide 1: The Vision**
-> "What if AI could understand causality like humans do?"
-> 
-> Not another LLM. A fundamental breakthrough in machine reasoning.
+**Page 1: 开场** - "如果你的AI能真正理解因果关系，会发生什么？"
 
-**Slide 2: The Problem**
-- Current AI: Statistical pattern matching
-- Our Goal: True causal understanding
-- The Gap: From "what" to "why"
+**Page 2: 问题** - 展示谷歌流感预测失败案例：相关性AI的致命缺陷每年造成数万亿损失
 
-**Slide 3: DiscoSCM - The Breakthrough**
-```
-Traditional AI: Correlation → Prediction
-DiscoSCM: Observation → Causation → Intervention → Counterfactual
-```
-Published research. Proven at scale. Ready to open source.
+**Page 3: 解决方案** - DiscoSCM：像医生理解病因一样，让AI理解世界运行的底层逻辑
 
-**Slide 4: Technical Architecture**
-- Layer 1: DiscoSCM causal reasoning engine
-- Layer 2: Distributed computation network  
-- Layer 3: Token incentive mechanism
-- Layer 4: DAO governance
+**Page 4: 市场** - $570B因果AI直接市场 + $10T+间接价值创造机会
 
-**Slide 5: Decentralization Roadmap**
-- **Now**: Centralized R&D, core team
-- **6 months**: Open source release, community building
-- **12 months**: Distributed network launch, token genesis
-- **18 months**: Full DAO transition
+**Page 5: 产品演示** - 实时展示：输入"用户流失"→AI自动分析真实原因→推荐最佳干预策略→预测效果
 
-**Slide 6: Token Economics**
-- Compute-to-earn: Provide inference, earn tokens
-- Contribute-to-earn: Improve models, earn tokens
-- Stake-to-govern: Lock tokens, guide development
-- Use-to-access: Spend tokens, get causal insights
+**Page 6: 商业模式** - 从$0.1 API调用到$10M企业方案的完整产品矩阵
 
-**Slide 7: Why Now?**
-- LLMs hit the correlation ceiling
-- Causal AI is the next frontier
-- First mover advantage in defining standards
-- Community ready for next paradigm
+**Page 7: 竞争优势** - 原创理论+快手验证+千人社区=3年领先优势
 
-**Slide 8: The Builder**
-**Dr. Gong Heyang**
-- PhD Statistics, DiscoSCM inventor
-- Proven at Kuaishou (100M+ users)
-- 1000+ researcher community
+**Page 8: 团队** - 龚鹤扬博士：因果推理博士+DiscoSCM发明人+连续创业者
 
-**Slide 9: Traction**
-- Theory: Multiple top-tier publications
-- Practice: Billion RMB value created
-- Community: Active causal AI movement
-- Code: Ready for open source
+**Page 9: 成绩与规划** - 已实现：在快手亿级成本节省；将实现：18个月$5M ARR
 
-**Slide 10: Join the Revolution**
-> "This isn't an investment. It's a movement."
-> 
-> We're building the open infrastructure for causal AI.
-> Be part of defining how machines understand why.
-
-**github.com/1587causalai** | **twitter.com/causalai** | **discord.gg/causalai** 
+**Page 10: 邀请加入** - "$10M种子轮，一起定义AI的因果时代" 
