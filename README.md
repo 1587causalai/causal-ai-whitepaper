@@ -47,6 +47,8 @@
 
 **我们正在构建人类理解因果关系的开放基础设施。** 
 
+
+
 基于原创的DiscoSCM理论，我们要让每个AI都能理解"为什么"而不仅仅是"是什么"。这不是又一个大模型项目，而是AI认知能力的根本性突破。
 
 ## 为什么这很重要
@@ -68,11 +70,19 @@
 
 ## 加入我们
 
+
+
 **不是投资，是共建。** 我们寻找：
 - 相信因果AI改变世界的早期支持者
 - 愿意贡献代码的开发者
 - 想要共同定义标准的研究者
 
+
 **龚鹤扬博士**领衔，千人因果社区支持。这不是一个公司，而是一个运动。
 
+<p style="text-align: center;">
+<img src="assets/Kapibala.png" alt="Causal AI" width="200">
+</p>
+
+<p style="text-align: center;"  >
 *Code is law. Causality is truth.* 

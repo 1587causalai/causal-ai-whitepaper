@@ -1,12 +1,15 @@
 * [**项目概览**](/)
-* [**技术白皮书**](PITCH_DECK.md)
+* [**融资演讲稿**](PITCH_DECK.md)
 
 * **核心理念**
   * [愿景：为什么需要因果AI](01-executive-summary/vision.md)
   * [解决方案：DiscoSCM](01-executive-summary/solution.md)
   * [开源战略](04-traction/open-source-strategy.md)
 
-* **技术架构**
+* **因果大模型理论**
+  * [因果大模型理论](02-technology/causal-llm-theory.md)
+
+* **工程技术架构**
   * [核心技术突破](02-technology/breakthrough.md)
   * [系统架构](02-technology/architecture.md)
   * [技术路线图](02-technology/technical-roadmap.md)
