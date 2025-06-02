@@ -102,89 +102,11 @@
 
 ### 2. 关键组件详解
 
-#### 2.1 DiscoNet因果编码器
-- **异质单元表征学习**：通过对比学习捕捉个体差异性
-- **分布一致性约束**：确保因果表征在不同数据分布下的稳定性
-- **层次化因果图构建**：自动学习变量间的因果依赖关系
+因果推理服务层 ...
 
-```python
-class DiscoNet(nn.Module):
-    def __init__(self, base_model, causal_dim=768):
-        self.base_encoder = base_model
-        self.heterogeneity_encoder = HeterogeneityModule()
-        self.consistency_loss = DistributionConsistencyLoss()
-        self.causal_attention = CausalAttentionLayer()
-```
+模型层 ...
 
-#### 2.2 因果Transformer架构
-- **改造注意力机制**：引入因果掩码，区分因果依赖和伪相关
-- **双向推理引擎**：支持从效果到原因（溯因）和从原因到效果（预测）
-- **反事实生成模块**：基于学习到的因果机制生成反事实场景
+计算层 ...
 
-#### 2.3 推理优化技术
-- **因果图剪枝**：动态识别相关因果路径，减少计算复杂度
-- **批量反事实计算**：并行化处理多个反事实查询
-- **缓存机制**：复用已计算的因果表征
-
-### 3. 性能指标与优化
-
-| 指标 | 目标值 | 当前达成 | 优化手段 |
-|------|--------|----------|----------|
-| 因果查询延迟 | <100ms | 150ms | 因果图索引优化 |
-| 反事实生成QPS | >1000 | 800 | 批量化处理 |
-| 模型加载时间 | <30s | 45s | 模型量化 |
-| GPU利用率 | >80% | 75% | 动态batch |
-
-### 4. 部署架构
-
-#### 4.1 云原生部署
-```yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: discoscm-llm-service
-spec:
-  replicas: 3
-  template:
-    spec:
-      containers:
-      - name: causal-llm
-        image: discoscm/causal-llm:latest
-        resources:
-          limits:
-            nvidia.com/gpu: 1
-```
-
-#### 4.2 多模态支持
-- **文本**：原生支持，通过因果语言建模
-- **结构化数据**：表格数据的因果关系学习
-- **时序数据**：动态因果图建模
-- **图数据**：因果图与知识图谱融合
-
-### 5. 与现有生态集成
-
-#### 5.1 模型适配
-- **HuggingFace兼容**：可加载预训练模型作为基座
-- **LangChain集成**：作为因果推理工具链
-- **向量数据库支持**：因果表征的高效存储和检索
-
-#### 5.2 开发者工具
-```python
-from discoscm import CausalLLM
-
-# 初始化因果大模型
-model = CausalLLM.from_pretrained("discoscm/causal-llama-7b")
-
-# 因果查询
-cause = model.abduce("用户流失", context=user_data)
-effect = model.predict_intervention("提高奖励", cause=cause)
-counterfactual = model.counterfactual("如果没有推送会怎样")
-```
-
-### 6. 监控与运维
-
-- **因果推理质量监控**：实时跟踪因果识别准确率
-- **A/B测试框架**：验证因果预测的实际效果
-- **模型漂移检测**：监控因果关系的时间稳定性
-- **可解释性仪表盘**：可视化因果推理过程
+基础设施层 ...
 
