@@ -11,11 +11,11 @@
   * [系统架构](02-technology/architecture.md)
   * [技术路线图](02-technology/technical-roadmap.md)
 
-* **去中心化路径**
+<!-- * **去中心化路径**
   * [开源战略](04-traction/open-source-strategy.md)
   * [去中心化路线图](06-investment/decentralized-roadmap.md)
   * [Token经济学](06-investment/token-economics.md)
-  * [社区治理](01-executive-summary/ask.md)
+  * [社区治理](01-executive-summary/ask.md) -->
 
 <!-- * **传统路径（备选）**
   * [市场机会](01-executive-summary/market.md)
