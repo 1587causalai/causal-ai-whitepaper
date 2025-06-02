@@ -13,13 +13,3 @@
   * [核心技术突破](02-technology/breakthrough.md)
   * [系统架构](02-technology/architecture.md)
   * [技术路线图](02-technology/technical-roadmap.md)
-
-* **去中心化路径**
-  * [Token经济学](06-investment/token-economics.md)
-  * [去中心化路线图](06-investment/decentralized-roadmap.md)
-  * [社区治理](01-executive-summary/ask.md)
-
-* **传统路径（备选）**
-  * [市场机会](01-executive-summary/market.md)
-  * [商业模式](03-business/revenue-model.md)
-  * [执行计划](05-roadmap/18-month-plan.md) 
