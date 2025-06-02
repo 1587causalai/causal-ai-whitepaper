@@ -17,7 +17,7 @@
   * [Token经济学](06-investment/token-economics.md)
   * [社区治理](01-executive-summary/ask.md)
 
-* **传统路径（备选）**
+<!-- * **传统路径（备选）**
   * [市场机会](01-executive-summary/market.md)
   * [商业模式](03-business/revenue-model.md)
-  * [执行计划](05-roadmap/18-month-plan.md) 
+  * [执行计划](05-roadmap/18-month-plan.md)  -->
