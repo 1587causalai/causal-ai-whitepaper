@@ -1,5 +1,5 @@
 * [**项目概览**](/)
-* [**融资演讲稿**](PITCH_DECK.md)
+<!-- * [**融资演讲稿**](PITCH_DECK.md) -->
 
 * **核心理念**
   * [愿景：为什么需要因果AI](01-executive-summary/vision.md)
