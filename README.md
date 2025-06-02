@@ -1,7 +1,4 @@
-# Causal AI: The Open Infrastructure for Understanding Why
-
-**我们正在构建人类理解因果关系的开放基础设施。**
-
+# 洞察因果关系的下一代大模型
 
 ## Why Now
 
@@ -10,7 +7,7 @@
 
 ## Our Vision
 
-构建完全开源、去中心化的因果AI基础设施。
+构建擅长洞察因果关系的下一代大模型，实现深度人机协作，打造以人为本的AI应用。
 
 ---
 
