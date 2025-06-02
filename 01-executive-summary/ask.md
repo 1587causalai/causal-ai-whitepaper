@@ -51,9 +51,7 @@
 
 # Join the Movement: Building Causal AI Together
 
-## 两条路径，同一使命
-
-### 路径一：去中心化社区驱动
+## 去中心化社区驱动
 
 **Token Generation Event (TGE)**
 - **目标金额**: $5-10M 等值
@@ -68,13 +66,6 @@
 - 6个月：发布去中心化推理网络v1
 - 12个月：1000+活跃开发者
 - 18个月：完全DAO治理
-
-### 路径二：传统股权融资（备选）
-
-如果监管或市场条件需要，我们也准备了传统路径：
-- 种子轮$10M，出让15-20%股权
-- 用于同样的技术开发目标
-- 但最终仍会走向开源和社区化
 
 ### 我们真正需要的
 
@@ -100,8 +91,3 @@
 4. **研究合作者**：共同推进理论边界
 
 **This is bigger than a company. This is about defining how AI understands causality.**
-
-联系方式：
-- Email: causality@1587ai.com
-- Telegram: @causalai_official
-- Discord: discord.gg/causalai 
