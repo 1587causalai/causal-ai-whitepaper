@@ -45,11 +45,12 @@ graph TD
 ```
 
 **关键设计理念**：
-- **观测数据表征**：特征网络从观测数据 `x` 中提取确定性的观测信息表征 `z`。
+- **观测数据表征**：特征网络从观测数据 `x` 中提取确定性的观测信息表征 `z`。对于包含数值的输入，采用 `embedding(<NUM>) + encode(value)` 的组合表示。
 - **内在因果推断**：推断网络基于观测信息 `z`，推断出不可直接观测的、样本/单元内在随机因果表征 `U`（"基因"）的分布参数。
-- **共享随机核心 `U`**：`U` 是连接后续所有任务的、统一的随机因果变量。
+- **共享随机核心 `U`**：`U` 是连接后续所有任务的、统一的随机因果表征。
 - **行动基于 `U`**：行动网络基于采样得到的 `U` 进行前向因果推断，执行具体的分类或回归行动。
 - **推断与行动分离**：清晰区分了"AbductionNetwork" (反向推断`U`的分布) 和 "ActionNetwork" (基于`U`前向执行因果行动)。
+- **数值处理统一性**：输入和输出都通过 `<NUM>` 词元统一处理，形成完整的数值处理链条。
 
 ### 2.2 关键组件详解
 
@@ -166,189 +167,124 @@ $$L_{reg} = \sum_{i=1}^{N} \left[\log(\pi \sigma_{out,i}) + \log\left(1 + \left(
 2. **参数可解释**：$\mu_{out}$ 表示位置参数（中位数），$\sigma_{out}$ 表示尺度参数（反映不确定性）
 3. **数值稳定**：柯西分布具有良好的数值计算性质
 
-## 5. 统一训练策略
+## 5. 统一损失函数设计
 
-### 5.1 任务自适应机制
+### 5.1 词汇表扩展与数值词元
 
-引入任务指示符 $T \in \{\text{classification}, \text{regression}\}$，模型根据任务类型选择相应的输出头：
+为了使模型同时处理分类和回归任务，我们需要扩展传统的词汇表。原始词汇表包含 $K$ 个分类词元 $\{1, 2, \ldots, K\}$，现在我们引入一个特殊的数值词元 `<NUM>`：
 
-```python
-def forward(self, x, task_type):
-    h = self.transformer(x)
-    z = self.feature_network(h)
-    mu, sigma = self.abduction_network(z)
-    U = self.sample_causal_repr(mu, sigma)
-    
-    if task_type == "classification":
-        return self.caac_head(U)
-    elif task_type == "regression":
-        return self.caar_head(U)
-    else:  # 统一输出模式
-        return {
-            "classification": self.caac_head(U),
-            "regression": self.caar_head(U)
-        }
-```
+**扩展词汇表**：$\{1, 2, \ldots, K, \text{<NUM>}\}$
 
-### 5.2 多任务学习损失
+**数值词元的双重角色**：
+- **输入时**：当输入序列包含数值时，将数值表示为 `embedding(<NUM>) + encode(value)`
+- **输出时**：当模型判断输出应为数值时，激活回归分支进行数值预测
 
-总损失函数为分类和回归损失的加权组合：
-$$L_{total} = \lambda_{class} \cdot L_{class} + \lambda_{reg} \cdot L_{reg} + \lambda_{consist} \cdot L_{consist}$$
+### 5.1.1 输入数值的处理
 
-其中 $L_{consist}$ 是一致性正则化项，确保不同任务共享的因果表征具有一致性。
+当输入序列中包含数值 $v$ 时，我们采用以下编码策略：
 
-### 5.3 一致性正则化
+$$\text{input\_repr}(v) = \text{embedding}(\text{<NUM>}) + \text{encode}(v)$$
 
-为了确保分类和回归任务学到一致的因果表征，我们引入KL散度正则化：
+其中：
+- $\text{embedding}(\text{<NUM>}) \in \mathbb{R}^d$ 是 `<NUM>` 词元的可学习嵌入向量，提供"这是数值"的语义信息
+- $\text{encode}(v) \in \mathbb{R}^d$ 是数值 $v$ 的编码表示，常见方法包括：
+  - **标准化编码**：$\text{encode}(v) = \alpha \cdot \tanh(\beta \cdot v + \gamma) \cdot \mathbf{1}_d$，其中 $\alpha, \beta, \gamma$ 是可学习参数
+  - **正弦位置编码**：类似 Transformer 中的位置编码，但应用于数值维度
+  - **分段线性编码**：将数值范围分段，每段内进行线性映射
 
-$$L_{consist} = \text{KL}\left[P(\vec{U}|x, \text{class}) || P(\vec{U}|x, \text{reg})\right]$$
+**设计优势**：
+1. **语义与数值分离**：`embedding(<NUM>)` 提供类型信息，`encode(v)` 提供量化信息
+2. **一致性维度**：保证与其他词元 embedding 相同的维度 $d$
+3. **端到端学习**：整个编码过程完全可微，支持梯度优化
 
-实际实现中，我们约束两个任务的因果推断网络参数相同或相近。
+### 5.2 `<NUM>` 词元概率计算
 
-## 6. 实现细节与配置
+对于输入 $x_i$，模型首先通过 Cauchy OvR 分类头计算原始 $K$ 个词元的概率 $P_{ik}$（$k = 1, 2, \ldots, K$）。然后，`<NUM>` 词元的概率通过以下方式推导：
 
-### 6.1 标准网络配置
+$$P_{i,\text{<NUM>}} = \max\left(\epsilon, 1 - \sum_{k=1}^K P_{ik}\right)$$
 
-**特征网络**：
-```python
-feature_network = nn.Sequential(
-    nn.Linear(transformer_dim, 512),
-    nn.ReLU(),
-    nn.Linear(512, 256), 
-    nn.ReLU(),
-    nn.Linear(256, representation_dim)  # 默认128
-)
-```
+其中：
+- $\epsilon$ 是一个很小的正数（如 $10^{-9}$），确保概率始终为正
+- $1 - \sum_{k=1}^K P_{ik}$ 表示"不属于任何已知分类词元"的概率余量
+- 由于 OvR 策略中各 $P_{ik}$ 独立计算，其和可能超过1，$\max$ 函数处理这种情况
 
-**推断网络**：
-```python
-shared_trunk = nn.Sequential(
-    nn.Linear(representation_dim, 256),
-    nn.ReLU(), 
-    nn.Linear(256, 128),
-    nn.ReLU(),
-    nn.Linear(128, 64)
-)
+### 5.3 真实标签表示
 
-location_head = nn.Linear(64, latent_dim)  # 默认128
-scale_head = nn.Sequential(
-    nn.Linear(64, latent_dim),
-    nn.Softplus()  # 确保输出为正
-)
-```
+对于每个训练样本 $(x_i, \text{target}_i)$：
 
-**CAAC分类头**：
-```python
-caac_head = nn.Linear(latent_dim, num_classes)  # A矩阵和B向量
-decision_thresholds = nn.Parameter(torch.zeros(num_classes))  # 可选
-```
+**分类样本**：当 $\text{target}_i$ 是分类标签 $c_i \in \{1, 2, \ldots, K\}$ 时
+- $y_{ik} = 1$ 当且仅当 $k = c_i$，否则 $y_{ik} = 0$
+- $y_{i,\text{<NUM>}} = 0$
 
-**CAAR回归头**：
-```python
-caar_head = nn.Linear(latent_dim, 1)  # W向量和b标量
-```
+**回归样本**：当 $\text{target}_i$ 是数值 $v_i$ 时
+- $y_{ik} = 0$ 对所有 $k \in \{1, 2, \ldots, K\}$
+- $y_{i,\text{<NUM>}} = 1$
+- $y_{i,\text{val}} = v_i$（真实数值）
 
-### 6.2 训练超参数
+### 5.4 统一损失函数
 
-```python
-# 基础设置
-learning_rate = 1e-3
-batch_size = 64
-max_epochs = 150
-early_stopping_patience = 15
+完整的统一损失函数由两个主要部分组成：
 
-# 损失权重
-lambda_class = 1.0
-lambda_reg = 1.0
-lambda_consist = 0.1
+$$L_{\text{unified}} = \sum_{i=1}^{N} \left( L_{\text{clf\_extended},i} + \lambda \cdot L_{\text{reg\_gated},i} \right)$$
 
-# 网络维度
-representation_dim = 128
-latent_dim = 128  # 因果表征维度
-```
+其中 $N$ 是样本数量，$\lambda > 0$ 是平衡分类和回归损失的超参数。
 
-### 6.3 采样配置
+#### 5.4.1 扩展分类损失
 
-```python
-# 训练时采样
-num_samples_train = 1  # 单次采样，通过重参数化
+扩展分类损失覆盖所有 $K+1$ 个词元（包括 `<NUM>`），采用 One-vs-Rest 二元交叉熵损失：
 
-# 推理时采样  
-num_samples_inference = 10  # 多次采样取平均
-use_mean_for_inference = True  # 或直接使用均值
-```
+$$L_{\text{clf\_extended},i} = \sum_{k=1}^K \left[ -y_{ik} \log(P_{ik}) - (1-y_{ik}) \log(1-P_{ik}) \right] \\ - y_{i,\text{<NUM>}} \log(P_{i,\text{<NUM>}}) - (1-y_{i,\text{<NUM>}}) \log(1-P_{i,\text{<NUM>}})$$
 
-## 7. 理论优势与创新点
+如果真实标签为数值，则 $y_{i,\text{<NUM>}} = 1$，但是 $P_{i,\text{<NUM>}}$ 会很小，意味着 $L_{\text{clf\_extended},i} = -\log(P_{i,\text{<NUM>}})$ 会很大，这会惩罚模型。这迫使模型首先正确分类，使得 $\sum_{k=1}^K P_{ik}$ 要尽可能接近于 0 才能最小化损失！
 
-### 7.1 相比V2版本的改进
+#### 5.4.2 门控回归损失
+
+门控回归损失仅在真实标签为数值时激活，并根据模型对 `<NUM>` 的预测概率进行加权：
+
+$$L_{\text{reg\_gated},i} = y_{i,\text{<NUM>}} \cdot (\sum_{k=1}^K P_{ik})^+ \cdot L_{\text{cauchy\_nll},i}$$
+
+其中柯西负对数似然损失为：
+
+$$L_{\text{cauchy\_nll},i} = \log(\pi \sigma_{out,i}) + \log\left(1 + \left(\frac{y_{i,\text{val}} - \mu_{out,i}}{\sigma_{out,i}}\right)^2\right)$$
+
+- $\mu_{out,i} = \sum_{j=1}^{M} W_j \cdot \mu_{ij} + b$：回归输出的位置参数
+- $\sigma_{out,i} = \sum_{j=1}^{M} |W_j| \cdot \sigma_{ij}$：回归输出的尺度参数
+
+
+### 5.5 损失函数的设计理念
+
+**门控机制的优势**：
+1. **自适应权重**：这个特殊的系数 $(\sum_{k=1}^K P_{ik})^+$ 的含义是鼓励模型首先要分类正确，然后才进行回归。
+2. **避免冲突**：分类和回归损失通过概率门控自然分离，避免训练冲突
+3. **统一优化**：两种任务在同一框架下联合优化，共享底层因果表征
+
+**数学合理性**：
+- 当 $\sum_{k=1}^K P_{ik}$ 接近 1 时，$P_{i,\text{<NUM>}} \approx \epsilon$，回归损失几乎不起作用
+- 当 $\sum_{k=1}^K P_{ik}$ 较小时，$P_{i,\text{<NUM>}}$ 较大，回归损失发挥主导作用
+- 这种设计确保了分类和回归任务的自然切换
+
+
+
+
+
+## 6. 架构优势与创新点
+
+### 6.1 相比V2版本的改进
 
 1. **简化架构**：去除了复杂的INN变换，回归因果推理本质
 2. **成熟方法**：基于CAAC和CAAR项目验证的实用算法
 3. **更好的可解释性**：每个组件都有明确的因果语义
 4. **数值稳定性**：避免了INN的雅可比计算和可逆性约束
 
-### 7.2 统一框架的优势
+### 6.2 统一框架的优势
 
 1. **共享因果表征**：分类和回归共享相同的因果推断机制
 2. **端到端学习**：整个架构完全可微，支持联合优化
 3. **任务灵活性**：可以处理纯分类、纯回归或混合任务
 4. **鲁棒性保证**：柯西分布提供天然的抗干扰能力
 
-### 7.3 理论创新
+### 6.3 理论创新
 
 1. **因果推断统一化**：将不同类型的输出任务统一到因果推理框架下
 2. **柯西分布建模**：充分利用柯西分布的厚尾和线性组合性质
-3. **推断-行动分离**：清晰分离因果推断和任务执行，增强可解释性
-
-## 8. 扩展方向
-
-### 8.1 多模态扩展
-
-- **视觉-语言统一**：Transformer主干支持图像+文本输入
-- **跨模态因果推理**：学习跨模态的共享因果表征
-- **统一输出空间**：文本生成、图像分类、数值预测的统一处理
-
-### 8.2 大规模预训练
-
-- **自监督预训练**：在大规模无标签数据上预训练因果表征
-- **任务迁移**：预训练的因果表征可迁移到不同下游任务
-- **知识蒸馏**：从大模型向小模型传递因果推理能力
-
-### 8.3 实时学习
-
-- **在线更新**：支持流式数据的因果表征实时更新
-- **增量学习**：新任务不会干扰已学习的因果机制
-- **自适应阈值**：决策阈值根据数据分布自动调整
-
-## 9. 实验验证计划
-
-### 9.1 基准测试
-
-1. **分类任务**：GLUE、SuperGLUE等NLP基准
-2. **回归任务**：数值预测、时间序列回归
-3. **混合任务**：同时包含分类和回归的复合数据集
-
-### 9.2 鲁棒性评估
-
-1. **噪声鲁棒性**：标签噪声、特征噪声下的性能
-2. **分布偏移**：域适应和泛化能力测试
-3. **对抗攻击**：对抗样本下的模型稳定性
-
-### 9.3 可解释性分析
-
-1. **因果表征可视化**：t-SNE、PCA等降维可视化
-2. **决策过程分析**：从因果推断到最终决策的路径追踪
-3. **不确定性量化**：模型置信度与实际性能的相关性
-
-## 10. 总结
-
-V3架构通过去除复杂的INN机制，采用成熟验证的CAAC和CAAR方法，构建了一个既简洁又强大的统一因果大模型。这一设计不仅保持了因果推理的理论优势，更在实用性和可解释性方面取得了显著提升。
-
-关键特点：
-- ✅ **架构简洁**：清晰的"推断-行动"两阶段设计
-- ✅ **理论坚实**：基于因果推理和柯西分布的数学基础
-- ✅ **实验验证**：CAAC和CAAR项目的成功验证
-- ✅ **统一框架**：分类和回归任务的自然统一
-- ✅ **工程友好**：避免复杂的数值计算，便于实现和调试
-
-这一架构为构建下一代因果智能系统奠定了坚实的基础。 
+3. **推断-行动分离**：清晰分离因果推断和任务执行，增强可解释性 

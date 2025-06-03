@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>深度剖析：顶尖大模型的多模态能力集成策略</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Noto Sans SC', sans-serif; scroll-behavior: smooth; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin-left: auto; margin-right: auto; height: 350px; max-height: 40vh; }
+        .active-nav { color: #0ea5e9; border-bottom-color: #0ea5e9; }
+        .inactive-nav { border-bottom-color: transparent; }
+        .active-tab { background-color: #0ea5e9; color: white; }
+        .inactive-tab { background-color: #e5e7eb; color: #374151; }
+        .section-title { border-bottom: 2px solid #0ea5e9; padding-bottom: 0.5rem; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800">
+    <header class="bg-white/80 backdrop-blur-lg sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3">
+            <ul class="flex items-center justify-center space-x-4 sm:space-x-8 text-sm sm:text-base font-medium text-slate-600">
+                <li><a href="#hypothesis" class="nav-link border-b-2 pb-1 transition-colors duration-300 inactive-nav">核心假说</a></li>
+                <li><a href="#translators" class="nav-link border-b-2 pb-1 transition-colors duration-300 inactive-nav">模态翻译官</a></li>
+                <li><a href="#engine" class="nav-link border-b-2 pb-1 transition-colors duration-300 inactive-nav">核心引擎</a></li>
+                <li><a href="#pathways" class="nav-link border-b-2 pb-1 transition-colors duration-300 inactive-nav">生成路径</a></li>
+                <li><a href="#titans" class="nav-link border-b-2 pb-1 transition-colors duration-300 inactive-nav">巨头策略</a></li>
+            </ul>
+        </nav>
+    </header>
+    <main class="container mx-auto p-4 md:p-8">
+        <section id="hypothesis" class="my-12 scroll-mt-24">
+            <h1 class="text-3xl md:text-4xl font-bold text-center text-slate-900">当前顶尖大模型的多模态能力集成策略</h1>
+            <p class="text-center text-lg text-slate-500 mt-2">一份交互式探索报告</p>
+            <div class="mt-12 bg-white p-8 rounded-xl shadow-lg border border-slate-200">
+                <h2 class="text-2xl font-bold text-slate-900 section-title mb-6">核心洞察：“可翻译性假说”</h2>
+                <p class="text-slate-600 leading-relaxed mb-6">
+                    本报告的核心观点是，一个大型模型能否成功集成一项新功能，关键在于这项功能是否能被有效**“翻译”成模型核心固有的、基于词元（Token）的序列生成范式**。图像、视频等复杂模态之所以能被集成，是因为存在像VQ-VAE或时空区块（Spacetime Patch）这样的“视觉词元化”技术，它们如同“模态翻译官”，将连续的现实信息转换成模型可以处理的离散词元序列。与此相对，精确的数值回归任务之所以困难，正是因为单一的连续值难以被有意义地“翻译”成这种序列范式，从而揭示了当前主流架构的内在偏好与局限。
+                </p>
+                <div class="w-full bg-slate-100 p-6 rounded-lg flex flex-col md:flex-row items-center justify-around text-center gap-4">
+                    <div class="font-medium text-slate-700">原始数据<br>(图像, 视频, 音频...)</div>
+                    <div class="text-4xl text-sky-500 font-sans">&rarr;</div>
+                    <div class="p-4 bg-sky-100 rounded-lg border border-sky-200">
+                        <h3 class="font-bold text-sky-700">模态翻译官</h3>
+                        <p class="text-sm text-sky-600">(词元化/表征对齐)</p>
+                    </div>
+                    <div class="text-4xl text-sky-500 font-sans">&rarr;</div>
+                    <div class="font-medium text-slate-700">离散/结构化词元序列</div>
+                    <div class="text-4xl text-sky-500 font-sans">&rarr;</div>
+                     <div class="p-4 bg-slate-200 rounded-lg border border-slate-300">
+                        <h3 class="font-bold text-slate-700">Transformer核心引擎</h3>
+                        <p class="text-sm text-slate-600">(序列生成)</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <section id="translators" class="my-16 scroll-mt-24">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 section-title mb-6">模态翻译官：多样化现实的词元化艺术</h2>
+            <p class="text-slate-600 mb-8 leading-relaxed">
+                将不同世界的原始数据转化为Transformer能够理解的通用“语言”，是实现多模态能力的第一步。这里，我们探索将各种模态“翻译”成词元的核心技术。请选择一个模态，查看其主流的“翻译”策略、原理、优缺点。
+            </p>
+            <div class="flex flex-wrap justify-center gap-2 mb-8">
+                <button class="modality-btn px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 active-tab" data-modality="image">🖼️ 图像</button>
+                <button class="modality-btn px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 inactive-tab" data-modality="video">🎬 视频</button>
+                <button class="modality-btn px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 inactive-tab" data-modality="audio">🎵 音频</button>
+                <button class="modality-btn px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 inactive-tab" data-modality="3d">🧊 3D模型</button>
+                <button class="modality-btn px-4 py-2 text-sm font-semibold rounded-full transition-all duration-300 inactive-tab" data-modality="untranslatable">🔢 “不可译”的难题</button>
+            </div>
+
+            <div id="translator-content" class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 min-h-[400px]">
+            </div>
+        </section>
+        
+        <section id="engine" class="my-16 scroll-mt-24">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 section-title mb-6">核心引擎：Transformer处理异构词元的机制</h2>
+            <p class="text-slate-600 mb-8 leading-relaxed">
+                当不同模态的“异构词元”汇入Transformer主干网络后，模型在架构层面如何做到一并处理？它们是被一视同仁，还是有特殊模块来区分对待？本节探讨Transformer内部的“多语种”处理机制。
+            </p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div id="engine-mechanisms" class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200">
+                    <h3 class="text-xl font-bold text-slate-800 mb-4">集成策略对比</h3>
+                    <p class="text-sm text-slate-500 mb-4">不同模态集成方法在参数效率和融合深度之间存在权衡。Adapter等方法效率高，但融合可能较浅；完全微调则相反。</p>
+                    <div class="chart-container h-64 md:h-80">
+                        <canvas id="mechanismsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="pathways" class="my-16 scroll-mt-24">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 section-title mb-6">生成路径：“拼接式”与“原生一体化”对比</h2>
+            <p class="text-slate-600 mb-8 leading-relaxed">
+                多模态内容的生成主要有两条路径：“拼接式”依赖多个专用模型串联工作，而“原生一体化”则追求在单一模型内实现端到端生成。这两种路径在工作流、能力和局限性上有着本质区别。
+            </p>
+            <div class="grid md:grid-cols-2 gap-8">
+                <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">🧩 “拼接式”方案</h3>
+                    <p class="text-slate-600 mb-6">由一系列独立模型按顺序工作，如文本模型生成提示，再由图像模型生成图片。开发快，可复用现有模块。</p>
+                    <div class="space-y-4">
+                        <div class="p-3 bg-red-50 text-red-700 rounded-lg text-sm"><span class="font-bold">❌ 错误累积：</span>早期错误会传播并被放大。</div>
+                        <div class="p-3 bg-red-50 text-red-700 rounded-lg text-sm"><span class="font-bold">❌ 语义鸿沟：</span>模型间信息传递可能失真。</div>
+                        <div class="p-3 bg-red-50 text-red-700 rounded-lg text-sm"><span class="font-bold">❌ 协同有限：</span>难以实现真正的跨模态联合推理。</div>
+                        <div class="p-3 bg-red-50 text-red-700 rounded-lg text-sm"><span class="font-bold">❌ 延迟较高：</span>多个模型顺序执行增加总耗时。</div>
+                    </div>
+                </div>
+                <div class="bg-white p-8 rounded-xl shadow-lg border border-slate-200">
+                    <h3 class="text-2xl font-bold text-slate-800 mb-4">🌍 “原生一体化”方案</h3>
+                    <p class="text-slate-600 mb-6">单一的、统一的模型直接处理和生成多种模态。理论上能实现更深层次的理解和更连贯的输出。</p>
+                     <div class="space-y-4">
+                        <div class="p-3 bg-amber-50 text-amber-700 rounded-lg text-sm"><span class="font-bold">⚠️ 架构复杂：</span>设计能无缝切换模态的解码器极具挑战。</div>
+                        <div class="p-3 bg-amber-50 text-amber-700 rounded-lg text-sm"><span class="font-bold">⚠️ 数据稀缺：</span>需要海量、高质量的原生交错多模态数据。</div>
+                        <div class="p-3 bg-amber-50 text-amber-700 rounded-lg text-sm"><span class="font-bold">⚠️ 长程规划：</span>保持长序列跨模态内容一致性非常困难。</div>
+                        <div class="p-3 bg-green-50 text-green-700 rounded-lg text-sm"><span class="font-bold">✅ 深度融合：</span>有望实现真正的跨模态协同生成。</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="titans" class="my-16 scroll-mt-24">
+            <h2 class="text-2xl md:text-3xl font-bold text-slate-900 section-title mb-6">巨头策略：业界领袖的架构哲学</h2>
+            <p class="text-slate-600 mb-8 leading-relaxed">
+                OpenAI、Google、Meta 等行业领导者在实现多模态能力时采取了不同的技术路线和架构哲学。通过对比它们的旗舰模型，我们可以洞察其设计思路、战略倾向以及在“拼接”与“一体化”之间的独特权衡。
+            </p>
+            <div id="titans-grid" class="grid md:grid-cols-3 gap-8">
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="text-center p-8 text-slate-500 text-sm">
+        <p>交互式报告由 Gemini 生成 | 2025</p>
+        <p class="mt-2"><a href="#" class="hover:text-sky-500 transition-colors">返回顶部 &uarr;</a></p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const data = {
+                translators: {
+                    image: {
+                        title: '🖼️ 图像词元化',
+                        description: '图像词元化的目标是将连续的像素网格转换为离散的、可供序列模型处理的词元。VQ-VAE是此领域的开创性技术。',
+                        techs: [
+                            { 
+                                name: 'VQ-VAE', 
+                                principle: '通过将编码器输出映射到一个学习到的离散码本（codebook），将连续图像数据转换为离散的码本ID序列。',
+                                pros: ['避免后验坍塌问题', '支持在潜空间上使用强大的自回归模型', '显著降低数据维度'],
+                                cons: ['重构图像可能较模糊', '标准VQ-VAE词元可能缺乏高层语义']
+                            },
+                            {
+                                name: 'VQ-GAN & VQ-VAE-2',
+                                principle: 'VQ-GAN结合生成对抗网络（GAN）提升重构保真度。VQ-VAE-2使用层级化码本，顶层捕获全局结构，底层建模局部细节。',
+                                pros: ['显著提升图像重构质量', '更好地区分全局与局部信息'],
+                                cons: ['训练过程更复杂', '模型参数量增加']
+                            }
+                        ]
+                    },
+                    video: {
+                        title: '🎬 视频词元化',
+                        description: '视频数据因其额外的时间维度和高度冗余性，给词元化带来了巨大挑战。有效的技术必须能高效捕获时空关系。',
+                        techs: [
+                            {
+                                name: 'Sora / Open-Sora',
+                                principle: '作为扩散型Transformer，在一个压缩的潜空间中操作“时空区块”(Spacetime Patches)，通过去噪过程生成视频。',
+                                pros: ['生成长达一分钟的高保真、时间一致视频', '能处理复杂场景和运动'],
+                                cons: ['计算成本极高', '物理模拟和精确空间细节仍有局限', '目前生成无声视频']
+                            },
+                            {
+                                name: 'TrajViT',
+                                principle: '基于物体的运动轨迹而非固定的时空区块来组织词元，使词元数量与场景复杂度相关，而非视频时长。',
+                                pros: ['显著减少词元数量', '词元语义丰富，无时间冗余', '对光照、相机运动不敏感'],
+                                cons: ['性能依赖上游分割/跟踪模型的质量', '轨迹生成有初始计算开销']
+                            },
+                            {
+                                name: 'Token Dynamics',
+                                principle: '通过解耦视觉嵌入和网格级运动信息，实现极致的词元压缩，同时努力保持时空连贯性。',
+                                pros: ['极高的词元压缩率', '有效保持时空连贯性', '可作为即插即用模块集成'],
+                                cons: ['相较无压缩基线有微小性能损失', '实现复杂度可能较高']
+                            }
+                        ]
+                    },
+                    audio: {
+                        title: '🎵 音频词元化',
+                        description: '音频词元化需要在捕获音色、韵律、内容等多种声学特征与实现和LLM兼容的低比特率之间取得平衡。',
+                        techs: [
+                            {
+                                name: '"Make Some Noise" (VQ-CFM)',
+                                principle: '结合VQ与条件流匹配(CFM)，生成超低比特率的离散音频词元，使其能与文本词元无缝集成到LLM中。',
+                                pros: ['词元化性能优于传统VQ-VAE', '音频理解任务上有竞争力'],
+                                cons: ['音频生成质量较差', '为与LLM兼容牺牲了大量细粒度细节']
+                            },
+                            {
+                                name: 'DualCodec',
+                                principle: '采用双流编码框架，一个流通过自监督学习(SSL)捕获语义，另一个流处理波形以保留声学细节。',
+                                pros: ['在低帧率下同时实现丰富语义和高音频质量', '实现语义和声学信息解耦'],
+                                cons: ['编码实时因子(RTF)较高', '编解码器参数量较大']
+                            }
+                        ]
+                    },
+                    '3d': {
+                        title: '🧊 3D模型词元化',
+                        description: '3D数据通常无序、稀疏且不规则，其词元化技术高度多样化，反映了数据和任务的多样性。',
+                        techs: [
+                            {
+                                name: 'AdaToken-3D',
+                                principle: '通过分析空间词元对场景理解的贡献，动态修剪3D大语言模型中冗余的空间词元，以降低计算开销。',
+                                pros: ['显著提升推理效率', '保持任务精度', '减少模型“幻觉”'],
+                                cons: ['信息贡献计算复杂', '过度修剪有信息丢失风险']
+                            },
+                            {
+                                name: '3D Shape Tokens',
+                                principle: '将3D形状视为空间中的概率密度函数，通过流匹配(flow matching)学习其连续且紧凑的表征，作为下游任务的条件向量。',
+                                pros: ['连续紧凑，便于机器学习任务', '训练流程简单', '支持几何分析'],
+                                cons: ['其连续表征与标准自回归LLM的整合方式可能不同']
+                            }
+                         ]
+                    },
+                    untranslatable: {
+                        title: '🔢 “不可翻译”的难题：数值回归',
+                        description: '与其它模态不同，单一的、连续的数值从根本上抵制被有意义地分解为离散词元序列。这直接导致了LLM在处理精确数值回归任务时的“笨拙”。',
+                        techs: [
+                            {
+                                name: '核心挑战',
+                                principle: '1. **词元化障碍**：标准词元化器会破坏数字的数学连续性并引入量化误差。<br>2. **误差累积**：自回归的逐词元生成会放大早期微小错误。<br>3. **离散本质**：LLM预测离散词元，无法自然产生平滑的连续输出。',
+                                pros: ['这个难题深刻印证了“可翻译性假说”的有效性。'],
+                                cons: ['这是当前主流大模型范式的根本局限之一。']
+                            },
+                            {
+                                name: '变通方案',
+                                principle: '由于难以直接“翻译”，业界普遍采用变通方法：<br>1. **专用回归头**：在LLM嵌入之上附加一个小型MLP，完全绕过核心模型的词元生成过程。<br>2. **特殊编解码**：设计专门的数值词元化方案(如xVal)或重构为受限序列生成问题。',
+                                pros: ['能够解决特定回归任务。'],
+                                cons: ['这些“外挂”式的方案恰恰说明了核心架构不擅长此道。']
+                            }
+                        ]
+                    }
+                },
+                engineMechanisms: {
+                    title: '异构词元加工机制',
+                    description: 'Transformer内部通过多种机制来处理、整合来自不同模态的词元。',
+                    mechanisms: [
+                        {
+                            name: '交叉注意力 (Cross-Attention)',
+                            content: '核心机制，允许一个模态的表征（如文本）作为查询(Q)，去关注另一个模态的表征（如图像）的键(K)和值(V)，实现定向、精准的信息融合与对齐。'
+                        },
+                        {
+                            name: '混合专家 (MoE)',
+                            content: '将前馈网络(FFN)替换为多个“专家”网络和一个“门控”网络。门控网络可以学习将特定模态的词元路由到专门的专家进行处理，从而在不显著增加计算成本的情况下扩展模型容量，并实现模态专属处理。'
+                        },
+                        {
+                            name: 'Adapter模块',
+                            content: '在预训练模型中插入一些小型的、可训练的模块。在微调时只训练Adapter，冻结原模型参数。这是一种参数高效的方式，用于为现有LLM添加新的模态处理能力，同时避免灾难性遗忘。'
+                        }
+                    ]
+                },
+                 titans: [
+                    {
+                        name: 'OpenAI',
+                        logo: '💡',
+                        summary: '追求极致的统一模型。GPT-4o旨在成为单一的全能（omni）网络，而Sora则是一个高度一体化的世界模拟器。',
+                        philosophy: '倾向于原生一体化',
+                        data: {
+                            labels: ['原生一体化', '模块化', '计算成本', '数据复杂度', '推理延迟'],
+                            values: [9, 3, 9, 8, 4]
+                        }
+                    },
+                    {
+                        name: 'Google',
+                        logo: '🌍',
+                        summary: '从零开始构建原生多模态。Gemini从设计之初就是统一架构，所有模态在其中进行深度融合与推理。',
+                        philosophy: '坚定地原生一体化',
+                        data: {
+                            labels: ['原生一体化', '模块化', '计算成本', '数据复杂度', '推理延迟'],
+                            values: [10, 2, 8, 10, 5]
+                        }
+                    },
+                    {
+                        name: 'Meta',
+                        logo: '🚀',
+                        summary: '展现了从务实的模块化到追求原生一体化的清晰演进路径。',
+                        philosophy: '从Adapter拼接演进到原生一体化',
+                        data: {
+                            labels: ['原生一体化', '模块化', '计算成本', '数据复杂度', '推理延迟'],
+                            values: [7, 8, 7, 7, 6]
+                        }
+                    }
+                ]
+            };
+            
+            const translatorContent = document.getElementById('translator-content');
+            const modalityBtns = document.querySelectorAll('.modality-btn');
+
+            function renderTranslators(modality) {
+                const content = data.translators[modality];
+                let html = `<h3 class="text-xl font-bold text-slate-800 mb-2">${content.title}</h3>`;
+                html += `<p class="text-slate-500 mb-6 text-sm">${content.description}</p>`;
+                html += '<div class="space-y-6">';
+                content.techs.forEach(tech => {
+                    html += '<div class="border-t border-slate-200 pt-4">';
+                    html += `<h4 class="font-semibold text-slate-700">${tech.name}</h4>`;
+                    html += `<p class="text-sm text-slate-600 my-2">${tech.principle}</p>`;
+                    html += '<div class="flex flex-wrap gap-4 text-xs mt-3">';
+                    tech.pros.forEach(pro => {
+                       html += `<div class="bg-green-100 text-green-800 px-2 py-1 rounded">✓ ${pro}</div>`;
+                    });
+                    tech.cons.forEach(con => {
+                       html += `<div class="bg-red-100 text-red-800 px-2 py-1 rounded">✗ ${con}</div>`;
+                    });
+                    html += '</div></div>';
+                });
+                html += '</div>';
+                translatorContent.innerHTML = html;
+            }
+
+            modalityBtns.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    modalityBtns.forEach(b => b.classList.replace('active-tab','inactive-tab'));
+                    btn.classList.replace('inactive-tab','active-tab');
+                    renderTranslators(btn.dataset.modality);
+                });
+            });
+            
+            function renderEngineMechanisms() {
+                const container = document.getElementById('engine-mechanisms');
+                const content = data.engineMechanisms;
+                let html = `<h3 class="text-xl font-bold text-slate-800 mb-2">${content.title}</h3>`;
+                html += `<p class="text-sm text-slate-500 mb-6">${content.description}</p>`;
+                html += '<div class="space-y-4">';
+                content.mechanisms.forEach((mech, index) => {
+                    html += `
+                        <div class="p-4 rounded-lg bg-slate-100 border border-slate-200">
+                           <h4 class="font-semibold text-sky-700">${mech.name}</h4>
+                           <p class="text-sm text-slate-600 mt-1">${mech.content}</p>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                container.innerHTML = html;
+            }
+
+            function initMechanismsChart() {
+                const ctx = document.getElementById('mechanismsChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['完全微调', 'Adapter', 'LoRA', 'MoE'],
+                        datasets: [{
+                            label: '参数效率 (越高越好)',
+                            data: [1, 8, 9, 7],
+                            backgroundColor: 'rgba(56, 189, 248, 0.6)',
+                            borderColor: 'rgba(56, 189, 248, 1)',
+                            borderWidth: 1
+                        }, {
+                            label: '融合深度 (越高越好)',
+                            data: [10, 6, 5, 8],
+                            backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                            borderColor: 'rgba(16, 185, 129, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        scales: { x: { beginAtZero: true, max: 10 } },
+                        plugins: {
+                            title: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let label = context.dataset.label || '';
+                                        if (label) { label += ': '; }
+                                        if (context.parsed.x !== null) {
+                                            label += context.parsed.x;
+                                        }
+                                        return label;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            function renderTitans() {
+                const grid = document.getElementById('titans-grid');
+                let html = '';
+                data.titans.forEach((titan, index) => {
+                    html += `
+                        <div class="bg-white p-6 rounded-xl shadow-lg border border-slate-200 flex flex-col">
+                            <div class="flex items-center mb-4">
+                                <span class="text-4xl mr-4">${titan.logo}</span>
+                                <div>
+                                    <h3 class="text-2xl font-bold text-slate-900">${titan.name}</h3>
+                                    <p class="text-sm font-semibold text-sky-600">${titan.philosophy}</p>
+                                </div>
+                            </div>
+                            <p class="text-slate-600 text-sm mb-4 flex-grow">${titan.summary}</p>
+                            <div class="chart-container h-56 md:h-64 mt-auto">
+                                <canvas id="titanChart${index}"></canvas>
+                            </div>
+                        </div>
+                    `;
+                });
+                grid.innerHTML = html;
+                
+                data.titans.forEach((titan, index) => {
+                    initTitanChart(index, titan.data);
+                });
+            }
+
+            function initTitanChart(index, chartData) {
+                const ctx = document.getElementById(`titanChart${index}`).getContext('2d');
+                new Chart(ctx, {
+                    type: 'radar',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [{
+                            label: data.titans[index].name,
+                            data: chartData.values,
+                            backgroundColor: 'rgba(56, 189, 248, 0.2)',
+                            borderColor: 'rgba(56, 189, 248, 1)',
+                            pointBackgroundColor: 'rgba(56, 189, 248, 1)',
+                            pointBorderColor: '#fff',
+                            pointHoverBackgroundColor: '#fff',
+                            pointHoverBorderColor: 'rgba(56, 189, 248, 1)'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                         scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 10,
+                                pointLabels: { font: { size: 10 } },
+                                ticks: { display: false }
+                            }
+                        },
+                        plugins: {
+                           legend: { display: false },
+                           title: { display: false }
+                        }
+                    }
+                });
+            }
+
+            const navLinks = document.querySelectorAll('.nav-link');
+            const sections = document.querySelectorAll('section');
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        navLinks.forEach(link => {
+                            link.classList.remove('active-nav');
+                            link.classList.add('inactive-nav');
+                            if (link.getAttribute('href').substring(1) === entry.target.id) {
+                                link.classList.add('active-nav');
+                                link.classList.remove('inactive-nav');
+                            }
+                        });
+                    }
+                });
+            }, { rootMargin: '-50% 0px -50% 0px' });
+
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+            renderTranslators('image');
+            renderEngineMechanisms();
+            initMechanismsChart();
+            renderTitans();
+            
+            navLinks[0].classList.add('active-nav');
+            navLinks[0].classList.remove('inactive-nav');
+
+        });
+    </script>
+</body>
+</html>
