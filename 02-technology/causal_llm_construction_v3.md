@@ -14,24 +14,24 @@
 
 ```mermaid
 graph TD
-    input_x["输入 x (观测数据)"] --> feature_z
+    input_x["输入 x"] --> feature_z
     
-    subgraph FN ["特征网络 (FeatureNetwork)"]
+    subgraph FN [" FeatureNetwork"]
         feature_z["观测信息表征<br/>x → z"]
     end
     
     feature_z --> causal_U
     
-    subgraph ABN ["推断网络 (AbductionNetwork)"]
-        causal_U["推断样本的因果表征<br/>z → (μ(z), σ(z)) <br/>r.v. U ~ Cauchy(μ(z), σ(z))"]
+    subgraph ABN ["AbductionNetwork"]
+        causal_U["个体因果表征<br/>z → (loc(z), scale(z)) <br/> U ~ Cauchy(loc(z), scale(z))"]
     end
     
     subgraph ACN ["行动网络 (ActionNetwork)"]
-        causal_U -- "前向因果推断" --> classification_action["分类行动<br/>S_k = A_k·U + B_k~ Cauchy"]
-        causal_U -- "前向因果推断" --> regression_action["回归行动<br/>Y = W·U + b~ Cauchy"]
+        causal_U -- "前向因果推断" --> classification_action["因果分类<br/>S_k = A_k·U + B_k~ Cauchy"]
+        causal_U -- "前向因果推断" --> regression_action["因果回归<br/>Y = W·U + b~ Cauchy"]
         
-        classification_action --> probability_output["输出词元是否为k的概率<br/>P(S_k > C_k)"]
-        regression_action --> numerical_output["数值输出<br/>y "]
+        classification_action --> probability_output["输出词元是否为k的决策<br/>I(S_k > C_k)"]
+        regression_action --> numerical_output["数值决策<br/>y "]
     end
     
     probability_output --> ovr_prediction["OvR类别预测"]
@@ -52,6 +52,8 @@ graph TD
 - **推断与行动分离**：清晰区分了"AbductionNetwork" (反向推断`U`的分布) 和 "ActionNetwork" (基于`U`前向执行因果行动)。
 - **数值处理统一性**：输入和输出都通过 `<NUM>` 词元统一处理，形成完整的数值处理链条。
 
+
+
 ### 2.2 关键组件详解
 
 #### 2.2.1 特征网络 (FeatureNetwork)
@@ -69,15 +71,15 @@ $$ z(x) = \text{FeatureNetwork}(x) $$
 
 **角色**：基于观测信息表征 $z(x)$，推断不可直接观测的、样本/单元内在随机因果表征 $\vec{U}$ (基因) 的柯西分布参数。
 
-**功能**：输出 $\vec{U}$ 的 $M$-维位置参数向量 $\vec{\mu}(z)$ 和 $M$-维尺度参数向量 $\vec{\sigma}(z)$。
+**功能**：输出 $\vec{U}$ 的 $M$-维位置参数向量 $\vec{\mathrm{loc}}(z)$ 和 $M$-维尺度参数向量 $\vec{\mathrm{scale}}(z)$。
 
-$$ \vec{\mu}(z), \vec{\sigma}(z) = \text{AbductionNetwork}(z(x)) $$
+$$ \vec{\mathrm{loc}}(z), \vec{\mathrm{scale}}(z) = \text{AbductionNetwork}(z(x)) $$
 
-其中 $\vec{U} \in \mathbb{R}^M$，所以 $\vec{\mu}(z) \in \mathbb{R}^M$ 且 $\vec{\sigma}(z) \in \mathbb{R}_+^M$ (尺度参数恒为正)。
+其中 $\vec{U} \in \mathbb{R}^M$，所以 $\vec{\mathrm{loc}}(z) \in \mathbb{R}^M$ 且 $\vec{\mathrm{scale}}(z) \in \mathbb{R}_+^M$ (尺度参数恒为正)。
 
 **实现**：通常由一个共享的神经网络主干和两个独立的头部网络组成：
--   **位置参数头 (Location Head)**：$z(x) \rightarrow \vec{\mu}(z)$
--   **尺度参数头 (Scale Head)**：$z(x) \rightarrow \vec{\sigma}(z)$。为保证尺度参数为正，通常在输出层使用如 Softplus 激活函数。
+-   **位置参数头 (Location Head)**：$z(x) \rightarrow \vec{\mathrm{loc}}(z)$
+-   **尺度参数头 (Scale Head)**：$z(x) \rightarrow \vec{\mathrm{scale}}(z)$。为保证尺度参数为正，通常在输出层使用如 Softplus 激活函数。
 
 #### 2.2.3 随机因果表征采样
 
@@ -85,17 +87,54 @@ $$ \vec{\mu}(z), \vec{\sigma}(z) = \text{AbductionNetwork}(z(x)) $$
 
 **功能**：假设 $\vec{U}$ 的各分量 $U_j$ 相互独立，则每个分量 $U_j$ 从其对应的柯西分布中采样：
 
-$$ U_j \sim \text{Cauchy}(\mu_j(z), \sigma_j(z)), \quad j=1, \dots, M $$
+$$ U_j \sim \text{Cauchy}(\mathrm{loc}_j(z), \mathrm{scale}_j(z)), \quad j=1, \dots, M $$
 
 **实现 (训练时)**：为保证端到端可微训练，常采用重参数化技巧 (reparameterization trick)：
 
-$$ U_j = \mu_j(z) + \sigma_j(z) \cdot \tan(\pi(\epsilon_j - 0.5)) $$
+$$ U_j = \mathrm{loc}_j(z) + \mathrm{scale}_j(z) \cdot \tan(\pi(\epsilon_j - 0.5)) $$
 
 其中 $\epsilon_j \sim \text{Uniform}(0,1)$ 是从标准均匀分布中采样的随机数。
 
-**实现 (推理时)**：可采样多次以获得更稳定的估计，或直接使用分布的位置参数。注意：柯西分布的数学期望不存在，但位置参数 $\mu_j(z)$ 对应分布的中位数。在实践中，如果需要点估计，通常使用位置参数 $\mu_j(z)$ 作为 $\vec{U}$ 的代表值，或者进行多次采样并对后续任务的输出进行平均。
+**实现 (推理时)**：可采样多次以获得更稳定的估计，或直接使用分布的位置参数。注意：柯西分布的数学期望不存在，但位置参数 $\mathrm{loc}_j(z)$ 对应分布的中位数。在实践中，如果需要点估计，通常使用位置参数 $\mathrm{loc}_j(z)$ 作为 $\vec{U}$ 的代表值，或者进行多次采样并对后续任务的输出进行平均。
 
-## 3. 分类任务：CAAC方法
+
+#### 2.2.4 输出数值词元处理
+
+
+
+```mermaid
+graph TD
+    A["原始输入: 价格是 129.99 元"] --> B
+    B["步骤1: Tokenizer处理"] --> C
+    B --> D
+    
+    C["输出1 - 词元序列: 价格, 是, NUM, 元"] --> E
+    D["输出2 - 关联数值: 129.99"] --> F
+    
+    E["步骤2.1: 词元嵌入"] --> G
+    F["步骤2.2: 数值编码"] --> G
+    
+    G["步骤3: 组合表示 (嵌入+编码)"] --> H
+    
+    H["最终输入表征序列"]
+```
+
+- **步骤 1: Tokenizer (分词器) 处理**：这是整个流程的起点。Tokenizer 接收原始的文本字符串，并执行两项关键任务，产生两条并行的信息流：       
+    - **输出 1 - 词元序列**: 将文本分割成模型能理解的基本单元（Token）。在此过程中，原始的数值 `129.99` 被一个特殊的占位符 `NUM` 替换。这样做是为了告诉模型“这里有一个数字”，即提供**类别语义**。
+    - **输出 2 - 关联数值**: 将原始数值 `129.99` 作为一个独立的浮点数提取出来。这个值保留了数字的**精确量级**信息。通过这种方式，我们将数值的“类别”和“大小”两个维度的信息分离开来，便于后续的精细化处理。
+
+- **步骤 2: 嵌入 (Embedding) 与编码 (Encoding)**：两条信息流分别进入不同的处理模块：
+
+    - **步骤 2.1 - 词元嵌入**: 对“词元序列” (`价格, 是, NUM, 元`) 进行处理。模型会为序列中的每一个词元（包括特殊的 `NUM` 词元）查找其对应的、可学习的嵌入向量 (Embedding Vector)。
+    - **步骤 2.2 - 数值编码**: 对“关联数值” (`129.99`) 进行处理。通过一个数值编码器（例如一个小型MLP或固定的正弦编码函数），将这个标量数值转换为一个与词元嵌入维度相同的高维向量。
+- **步骤 3: 组合表示 (嵌入+编码)**：将两条信息流重新汇合，以一种有意义的方式将它们组合起来, 我们将 `NUM` 词元的**通用嵌入向量**与 `129.99` 经过编码后的**特定数值向量**进行逐元素相加。
+
+$$\text{最终数值表示} = \text{Embedding}(\text{NUM}) + \text{Encode}(129.99)$$
+
+这样得到的最终向量，既包含了“这是一个数字”的通用语义，又融入了“这个数字具体是129.99”的精确量级信息。
+
+**最终输入表征序列**： 经过组合后，原先 `NUM` 所在位置的表示被替换为这个信息高度浓缩的新向量。最终，我们得到一个完整的向量序列。这个序列中的每个向量都已准备就绪，可以被无缝地输入到后续的特征网络（如 Transformer）中，进行深度的上下文学习。
+
 
 ### 3.1 核心原理
 
@@ -112,11 +151,11 @@ $$S_k = \sum_{j=1}^{D} A_{kj} \cdot U_j + B_k$$
 - $S_k$：第k类的决策得分（柯西随机变量）
 
 **概率计算**：
-$$P(Y = k|x) = P(S_k > C_k) = \frac{1}{2} + \frac{1}{\pi} \arctan\left(\frac{\mu_{S_k} - C_k}{\sigma_{S_k}}\right)$$
+$$P(Y = k|x) = P(S_k > C_k) = \frac{1}{2} + \frac{1}{\pi} \arctan\left(\frac{\mathrm{loc}_{S_k} - C_k}{\mathrm{scale}_{S_k}}\right)$$
 
 其中：
-- $\mu_{S_k} = \sum_{j=1}^{D} A_{kj} \cdot \mu_j + B_k$：$S_k$ 的位置参数（柯西分布的中位数）
-- $\sigma_{S_k} = \sum_{j=1}^{D} |A_{kj}| \cdot \sigma_j$：$S_k$ 的尺度参数  
+- $\mathrm{loc}_{S_k} = \sum_{j=1}^{D} A_{kj} \cdot \mathrm{loc}_j + B_k$：$S_k$ 的位置参数（柯西分布的中位数）
+- $\mathrm{scale}_{S_k} = \sum_{j=1}^{D} |A_{kj}| \cdot \mathrm{scale}_j$：$S_k$ 的尺度参数  
 - $C_k$ 是可学习的决策阈值（默认为0）
 
 ### 3.3 损失函数
@@ -127,7 +166,7 @@ $$L_{class} = -\sum_{i=1}^{N} \sum_{k=1}^{K} y_{i,k} \log P(Y_k = 1|x_i)$$
 ### 3.4 关键优势
 
 1. **鲁棒性**：柯西分布的厚尾特性提供对异常值的天然抗性
-2. **不确定性量化**：$\sigma_i(z)$ 直接反映决策的不确定程度
+2. **不确定性量化**：$\mathrm{scale}_i(z)$ 直接反映决策的不确定程度
 3. **理论基础**：基于因果推理的坚实理论基础
 
 ## 4. 回归任务：CAAR方法
@@ -150,21 +189,21 @@ $$y_{num} = \sum_{j=1}^{D} W_j \cdot U_j + b$$
 
 由于 $U_j$ 都是独立的柯西分布，线性组合 $y_{num}$ 仍服从柯西分布：
 
-$$y_{num} \sim \text{Cauchy}\left(\mu_{out}, \sigma_{out}\right)$$
+$$y_{num} \sim \text{Cauchy}\left(\mathrm{loc}_{out}, \mathrm{scale}_{out}\right)$$
 
 其中：
-- $\mu_{out} = \sum_{j=1}^{D} W_j \cdot \mu_j(z) + b$
-- $\sigma_{out} = \sum_{j=1}^{D} |W_j| \cdot \sigma_j(z)$
+- $\mathrm{loc}_{out} = \sum_{j=1}^{D} W_j \cdot \mathrm{loc}_j(z) + b$
+- $\mathrm{scale}_{out} = \sum_{j=1}^{D} |W_j| \cdot \mathrm{scale}_j(z)$
 
 ### 4.4 损失函数
 
 使用柯西分布的负对数似然：
-$$L_{reg} = \sum_{i=1}^{N} \left[\log(\pi \sigma_{out,i}) + \log\left(1 + \left(\frac{y_{true,i} - \mu_{out,i}}{\sigma_{out,i}}\right)^2\right)\right]$$
+$$L_{reg} = \sum_{i=1}^{N} \left[\log(\pi \mathrm{scale}_{out,i}) + \log\left(1 + \left(\frac{y_{true,i} - \mathrm{loc}_{out,i}}{\mathrm{scale}_{out,i}}\right)^2\right)\right]$$
 
 ### 4.5 优势特点
 
 1. **重尾建模**：自然处理数值数据中的极值情况
-2. **参数可解释**：$\mu_{out}$ 表示位置参数（中位数），$\sigma_{out}$ 表示尺度参数（反映不确定性）
+2. **参数可解释**：$\mathrm{loc}_{out}$ 表示位置参数（中位数），$\mathrm{scale}_{out}$ 表示尺度参数（反映不确定性）
 3. **数值稳定**：柯西分布具有良好的数值计算性质
 
 ## 5. 统一损失函数设计
@@ -245,10 +284,10 @@ $$L_{\text{reg\_gated},i} = y_{i,\text{<NUM>}} \cdot (\sum_{k=1}^K P_{ik})^+ \cd
 
 其中柯西负对数似然损失为：
 
-$$L_{\text{cauchy\_nll},i} = \log(\pi \sigma_{out,i}) + \log\left(1 + \left(\frac{y_{i,\text{val}} - \mu_{out,i}}{\sigma_{out,i}}\right)^2\right)$$
+$$L_{\text{cauchy\_nll},i} = \log(\pi \mathrm{scale}_{out,i}) + \log\left(1 + \left(\frac{y_{i,\text{val}} - \mathrm{loc}_{out,i}}{\mathrm{scale}_{out,i}}\right)^2\right)$$
 
-- $\mu_{out,i} = \sum_{j=1}^{M} W_j \cdot \mu_{ij} + b$：回归输出的位置参数
-- $\sigma_{out,i} = \sum_{j=1}^{M} |W_j| \cdot \sigma_{ij}$：回归输出的尺度参数
+- $\mathrm{loc}_{out,i} = \sum_{j=1}^{M} W_j \cdot \mathrm{loc}_{ij} + b$：回归输出的位置参数
+- $\mathrm{scale}_{out,i} = \sum_{j=1}^{M} |W_j| \cdot \mathrm{scale}_{ij}$：回归输出的尺度参数
 
 
 ### 5.5 损失函数的设计理念
