@@ -27,11 +27,11 @@ graph TD
     end
     
     subgraph ACN ["行动网络 (ActionNetwork)"]
-        causal_U -- "前向因果推断" --> classification_action["分类行动<br/>S_k = A_k·U + B_k"]
-        causal_U -- "前向因果推断" --> regression_action["回归行动<br/>y = W·U + b"]
+        causal_U -- "前向因果推断" --> classification_action["分类行动<br/>S_k = A_k·U + B_k~ Cauchy"]
+        causal_U -- "前向因果推断" --> regression_action["回归行动<br/>Y = W·U + b~ Cauchy"]
         
         classification_action --> probability_output["输出词元是否为k的概率<br/>P(S_k > C_k)"]
-        regression_action --> numerical_output["数值输出<br/>y ~ Cauchy"]
+        regression_action --> numerical_output["数值输出<br/>y "]
     end
     
     probability_output --> ovr_prediction["OvR类别预测"]
