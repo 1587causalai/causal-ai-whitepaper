@@ -7,7 +7,7 @@
   * [开源战略](04-traction/open-source-strategy.md)
 
 * **因果大模型理论**
-  * [因果大模型理论](02-technology/causal_llm_construction_v3.md)
+  * [因果大模型理论](02-technology/roadmap/causal_llm_construction_v3.md)
 
 * **工程技术架构**
   * [核心技术突破](02-technology/breakthrough.md)
